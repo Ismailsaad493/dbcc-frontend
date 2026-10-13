@@ -234,7 +234,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
           onClick={() => onSendToPeriod(totalCollected)}
           className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25"
         >
-          → Send ₹{totalCollected} to {periodLabel || "this month's collection"}
+          + Add to Collection (₹{totalCollected})
         </button>
       )}
     </div>
