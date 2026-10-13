@@ -25,6 +25,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
   const [addedState, setAddedState] = useState('idle')
+  const [pendingExpanded, setPendingExpanded] = useState(false)
   const loadedRef = useRef(false)
 
   useEffect(() => {
@@ -113,32 +114,45 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-purple-500/10 bg-black/20 p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">
-            Pending Contributions ({pending.length})
-          </h3>
-          <button
-            type="button"
-            onClick={handleCopyPending}
-            className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-400/25"
-          >
-            {copyState === 'copied' ? '✓ Copied!' : '📋 Copy List'}
-          </button>
-        </div>
-        {pending.length ? (
-          <ol className="list-decimal space-y-0.5 pl-5 text-sm font-semibold text-gray-300">
-            {pending.map((c) => (
-              <li key={c.id}>
-                {c.name}
-                {paymentStatus(c.amountPaid) === 'Partially Paid'
-                  ? `(₹${FULL_AMOUNT - c.amountPaid})`
-                  : ''}
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="text-sm font-semibold text-emerald-300">Everyone has paid in full. 🎉</p>
+      <div className="rounded-lg border border-purple-500/10 bg-black/20">
+        <button
+          type="button"
+          onClick={() => setPendingExpanded((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-3 text-left"
+        >
+          <span className="text-xs font-bold uppercase tracking-wider text-purple-300">
+            {pendingExpanded ? '▾' : '▸'} Pending Contributions ({pending.length})
+          </span>
+          <span className="text-[10px] font-semibold normal-case tracking-normal text-gray-600">
+            {pendingExpanded ? 'Click to collapse' : 'Click to expand'}
+          </span>
+        </button>
+        {pendingExpanded && (
+          <div className="border-t border-purple-500/10 p-3 pt-2">
+            <div className="mb-2 flex justify-end">
+              <button
+                type="button"
+                onClick={handleCopyPending}
+                className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-400/25"
+              >
+                {copyState === 'copied' ? '✓ Copied!' : '📋 Copy List'}
+              </button>
+            </div>
+            {pending.length ? (
+              <ol className="list-decimal space-y-0.5 pl-5 text-sm font-semibold text-gray-300">
+                {pending.map((c) => (
+                  <li key={c.id}>
+                    {c.name}
+                    {paymentStatus(c.amountPaid) === 'Partially Paid'
+                      ? `(₹${FULL_AMOUNT - c.amountPaid})`
+                      : ''}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-sm font-semibold text-emerald-300">Everyone has paid in full. 🎉</p>
+            )}
+          </div>
         )}
       </div>
 
