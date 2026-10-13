@@ -113,6 +113,53 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
         </div>
       </div>
 
+      <div className="rounded-lg border border-purple-500/10 bg-black/20 p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">
+            Pending Contributions ({pending.length})
+          </h3>
+          <button
+            type="button"
+            onClick={handleCopyPending}
+            className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-400/25"
+          >
+            {copyState === 'copied' ? '✓ Copied!' : '📋 Copy List'}
+          </button>
+        </div>
+        {pending.length ? (
+          <ol className="list-decimal space-y-0.5 pl-5 text-sm font-semibold text-gray-300">
+            {pending.map((c) => (
+              <li key={c.id}>
+                {c.name}
+                {paymentStatus(c.amountPaid) === 'Partially Paid'
+                  ? `(₹${FULL_AMOUNT - c.amountPaid})`
+                  : ''}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-sm font-semibold text-emerald-300">Everyone has paid in full. 🎉</p>
+        )}
+      </div>
+
+      {onSendToPeriod && (
+        <button
+          type="button"
+          onClick={() => {
+            onSendToPeriod(totalCollected)
+            setAddedState('added')
+            setTimeout(() => setAddedState('idle'), 1800)
+          }}
+          className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all ${
+            addedState === 'added'
+              ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
+              : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
+          }`}
+        >
+          {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
+        </button>
+      )}
+
       {selected.size > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-purple-400/30 bg-purple-400/10 p-3">
           <span className="text-xs font-bold text-purple-200">{selected.size} selected</span>
@@ -199,53 +246,6 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
           )
         })}
       </div>
-
-      <div className="rounded-lg border border-purple-500/10 bg-black/20 p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-purple-300">
-            Pending Contributions ({pending.length})
-          </h3>
-          <button
-            type="button"
-            onClick={handleCopyPending}
-            className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-400/25"
-          >
-            {copyState === 'copied' ? '✓ Copied!' : '📋 Copy List'}
-          </button>
-        </div>
-        {pending.length ? (
-          <ol className="list-decimal space-y-0.5 pl-5 text-sm font-semibold text-gray-300">
-            {pending.map((c) => (
-              <li key={c.id}>
-                {c.name}
-                {paymentStatus(c.amountPaid) === 'Partially Paid'
-                  ? `(₹${FULL_AMOUNT - c.amountPaid})`
-                  : ''}
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="text-sm font-semibold text-emerald-300">Everyone has paid in full. 🎉</p>
-        )}
-      </div>
-
-      {onSendToPeriod && (
-        <button
-          type="button"
-          onClick={() => {
-            onSendToPeriod(totalCollected)
-            setAddedState('added')
-            setTimeout(() => setAddedState('idle'), 1800)
-          }}
-          className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all ${
-            addedState === 'added'
-              ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
-              : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
-          }`}
-        >
-          {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
-        </button>
-      )}
     </div>
   )
 }

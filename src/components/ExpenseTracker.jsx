@@ -772,17 +772,6 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
       <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-purple-500/20 bg-[#150f22] p-1.5">
         <button
           type="button"
-          onClick={() => setView('tracker')}
-          className={`rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wide transition-all ${
-            view === 'tracker'
-              ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          Team Expense Tracker
-        </button>
-        <button
-          type="button"
           onClick={() => setView('contributions')}
           className={`rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wide transition-all ${
             view === 'contributions'
@@ -791,6 +780,17 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
           }`}
         >
           Monthly Contribution
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('tracker')}
+          className={`rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wide transition-all ${
+            view === 'tracker'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Team Expense Tracker
         </button>
       </div>
 
