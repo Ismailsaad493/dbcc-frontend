@@ -24,9 +24,10 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
-  const [addedState, setAddedState] = useState('idle')
+  const [lastSent, setLastSent] = useState(null)
   const [pendingExpanded, setPendingExpanded] = useState(false)
   const loadedRef = useRef(false)
+  const amountInputRefs = useRef([])
 
   useEffect(() => {
     let cancelled = false
@@ -100,6 +101,7 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
   const totalCollected = collections.reduce((sum, c) => sum + (c.amountPaid || 0), 0)
   const totalExpected = collections.length * FULL_AMOUNT
   const pending = orderedCollections.filter((c) => c.amountPaid < FULL_AMOUNT)
+  const isSynced = lastSent !== null && lastSent === totalCollected
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
@@ -172,16 +174,15 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
             title={!hasPeriod ? 'Start tracking a month in Team Expense Tracker first' : undefined}
             onClick={() => {
               onSendToPeriod(totalCollected)
-              setAddedState('added')
-              setTimeout(() => setAddedState('idle'), 1800)
+              setLastSent(totalCollected)
             }}
             className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-              addedState === 'added'
-                ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
+              isSynced
+                ? 'border-gray-600/40 bg-gray-600/10 text-gray-500'
                 : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
             }`}
           >
-            {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
+            {isSynced ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
           </button>
           {!hasPeriod && (
             <span className="text-[10px] font-semibold text-gray-500">
@@ -229,7 +230,7 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
           <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Select All</span>
         </div>
 
-        {orderedCollections.map((c) => {
+        {orderedCollections.map((c, index) => {
           const status = paymentStatus(c.amountPaid)
           const remaining = Math.max(0, FULL_AMOUNT - c.amountPaid)
           return (
@@ -251,6 +252,14 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
                   type="number"
                   value={c.amountPaid}
                   onChange={(e) => setAmount(c.id, Number(e.target.value))}
+                  ref={(el) => (amountInputRefs.current[index] = el)}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter') return
+                    e.preventDefault()
+                    const next = amountInputRefs.current[index + 1]
+                    next?.focus()
+                    next?.select()
+                  }}
                   className="w-20 rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-2 py-1.5 text-sm font-bold text-white outline-none focus:border-amber-400/60"
                 />
                 <span className="text-xs text-gray-500">/ ₹{FULL_AMOUNT}</span>
