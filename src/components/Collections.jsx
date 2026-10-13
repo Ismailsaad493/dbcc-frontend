@@ -20,7 +20,7 @@ function mergeWithInitial(data) {
   return initial.map((c, i) => ({ ...c, ...data[i], name: c.name }))
 }
 
-export default function Collections({ onAddToPeriod, periodLabel }) {
+export default function Collections({ onSendToPeriod, periodLabel }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
@@ -233,7 +233,12 @@ export default function Collections({ onAddToPeriod, periodLabel }) {
         {pending.length ? (
           <ol className="list-decimal space-y-0.5 pl-5 text-sm font-semibold text-gray-300">
             {pending.map((c) => (
-              <li key={c.id}>{c.name}</li>
+              <li key={c.id}>
+                {c.name}
+                {paymentStatus(c.amountPaid) === 'Partially Paid'
+                  ? `(₹${FULL_AMOUNT - c.amountPaid})`
+                  : ''}
+              </li>
             ))}
           </ol>
         ) : (
@@ -241,13 +246,13 @@ export default function Collections({ onAddToPeriod, periodLabel }) {
         )}
       </div>
 
-      {onAddToPeriod && (
+      {onSendToPeriod && (
         <button
           type="button"
-          onClick={() => onAddToPeriod(totalCollected)}
+          onClick={() => onSendToPeriod(totalCollected)}
           className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25"
         >
-          + Add ₹{totalCollected} to {periodLabel || "this month's collection"}
+          → Send ₹{totalCollected} to {periodLabel || "this month's collection"}
         </button>
       )}
     </div>

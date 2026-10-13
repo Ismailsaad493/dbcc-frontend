@@ -16,6 +16,9 @@ export function formatPendingText(collections) {
   const pending = collections.filter((c) => c.amountPaid < FULL_AMOUNT)
   if (!pending.length) return 'Awaiting contribution from the below.\n\nEveryone has paid in full. 🎉'
   const lines = ['Awaiting contribution from the below.', '']
-  pending.forEach((c, i) => lines.push(`${i + 1}. ${c.name}`))
+  pending.forEach((c, i) => {
+    const suffix = paymentStatus(c.amountPaid) === 'Partially Paid' ? `(₹${FULL_AMOUNT - c.amountPaid})` : ''
+    lines.push(`${i + 1}. ${c.name}${suffix}`)
+  })
   return lines.join('\n')
 }

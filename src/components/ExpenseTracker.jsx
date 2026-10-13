@@ -107,12 +107,9 @@ export default function ExpenseTracker() {
     }))
   }
 
-  function addToPeriodCollection(amount) {
-    if (!activePeriod || !amount) return
-    updatePeriod(activePeriod.id, (p) => ({
-      ...p,
-      collectionAmount: (Number(p.collectionAmount) || 0) + amount,
-    }))
+  function sendToPeriodCollection(amount) {
+    if (!activePeriod) return
+    updatePeriod(activePeriod.id, (p) => ({ ...p, collectionAmount: amount }))
   }
 
   function createFirstPeriod() {
@@ -763,7 +760,7 @@ export default function ExpenseTracker() {
         </div>
       )}
     </div>
-    <Collections onAddToPeriod={addToPeriodCollection} periodLabel={activePeriod.collectionLabel} />
+    <Collections onSendToPeriod={sendToPeriodCollection} periodLabel={activePeriod.collectionLabel} />
     </div>
   )
 }
