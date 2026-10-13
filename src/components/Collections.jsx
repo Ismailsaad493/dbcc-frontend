@@ -20,7 +20,7 @@ function mergeWithInitial(data) {
   return initial.map((c, i) => ({ ...c, ...data[i], name: c.name }))
 }
 
-export default function Collections({ onSendToPeriod, periodLabel }) {
+export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = true }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
@@ -165,21 +165,30 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
       </div>
 
       {onSendToPeriod && (
-        <button
-          type="button"
-          onClick={() => {
-            onSendToPeriod(totalCollected)
-            setAddedState('added')
-            setTimeout(() => setAddedState('idle'), 1800)
-          }}
-          className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all ${
-            addedState === 'added'
-              ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
-              : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
-          }`}
-        >
-          {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={!hasPeriod}
+            title={!hasPeriod ? 'Start tracking a month in Team Expense Tracker first' : undefined}
+            onClick={() => {
+              onSendToPeriod(totalCollected)
+              setAddedState('added')
+              setTimeout(() => setAddedState('idle'), 1800)
+            }}
+            className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+              addedState === 'added'
+                ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
+                : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
+            }`}
+          >
+            {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
+          </button>
+          {!hasPeriod && (
+            <span className="text-[10px] font-semibold text-gray-500">
+              Start tracking a month in Team Expense Tracker first
+            </span>
+          )}
+        </div>
       )}
 
       {selected.size > 0 && (

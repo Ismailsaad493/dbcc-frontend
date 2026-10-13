@@ -800,8 +800,9 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
       {view === 'tracker' && trackerSection}
       {view === 'contributions' && (
         <Collections
-          onSendToPeriod={activePeriod ? sendToPeriodCollection : undefined}
+          onSendToPeriod={sendToPeriodCollection}
           periodLabel={activePeriod?.collectionLabel}
+          hasPeriod={Boolean(activePeriod)}
         />
       )}
     </div>
