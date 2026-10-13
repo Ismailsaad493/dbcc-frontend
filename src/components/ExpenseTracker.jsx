@@ -107,6 +107,14 @@ export default function ExpenseTracker() {
     }))
   }
 
+  function addToPeriodCollection(amount) {
+    if (!activePeriod || !amount) return
+    updatePeriod(activePeriod.id, (p) => ({
+      ...p,
+      collectionAmount: (Number(p.collectionAmount) || 0) + amount,
+    }))
+  }
+
   function createFirstPeriod() {
     const { monthLabel, lastMonthLabel, collectionLabel } = describeFirstMonth(firstMonthForm)
     const period = createPeriod({
@@ -755,7 +763,7 @@ export default function ExpenseTracker() {
         </div>
       )}
     </div>
-    <Collections />
+    <Collections onAddToPeriod={addToPeriodCollection} periodLabel={activePeriod.collectionLabel} />
     </div>
   )
 }

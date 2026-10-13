@@ -20,10 +20,9 @@ function mergeWithInitial(data) {
   return initial.map((c, i) => ({ ...c, ...data[i], name: c.name }))
 }
 
-export default function Collections() {
+export default function Collections({ onAddToPeriod, periodLabel }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
-  const [bulkAmount, setBulkAmount] = useState('')
   const [copyState, setCopyState] = useState('idle')
   const loadedRef = useRef(false)
 
@@ -148,24 +147,6 @@ export default function Collections() {
           >
             Mark Not Paid (₹0)
           </button>
-          <input
-            type="number"
-            value={bulkAmount}
-            onChange={(e) => setBulkAmount(e.target.value)}
-            placeholder="Custom ₹"
-            className="w-24 rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-1.5 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              applyBulkAmount(Number(bulkAmount))
-              setBulkAmount('')
-            }}
-            disabled={!bulkAmount.trim()}
-            className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Apply
-          </button>
           <button
             type="button"
             onClick={() => setSelected(new Set())}
@@ -259,6 +240,16 @@ export default function Collections() {
           <p className="text-sm font-semibold text-emerald-300">Everyone has paid in full. 🎉</p>
         )}
       </div>
+
+      {onAddToPeriod && (
+        <button
+          type="button"
+          onClick={() => onAddToPeriod(totalCollected)}
+          className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25"
+        >
+          + Add ₹{totalCollected} to {periodLabel || "this month's collection"}
+        </button>
+      )}
     </div>
   )
 }
