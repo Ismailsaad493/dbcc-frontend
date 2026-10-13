@@ -77,11 +77,6 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
     setCollections((prev) => prev.map((c) => (selected.has(c.id) ? { ...c, amountPaid: clamped } : c)))
   }
 
-  function markAllFull() {
-    if (!window.confirm(`Mark all ${collections.length} players as paid in full (₹${FULL_AMOUNT})?`)) return
-    setCollections((prev) => prev.map((c) => ({ ...c, amountPaid: FULL_AMOUNT })))
-  }
-
   async function handleCopyPending() {
     try {
       await navigator.clipboard.writeText(formatPendingText(orderedCollections))
@@ -115,19 +110,6 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
           <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Pending</div>
           <div className="text-xl font-black text-amber-300">₹{totalExpected - totalCollected}</div>
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/5 p-3">
-        <button
-          type="button"
-          onClick={markAllFull}
-          className="rounded-lg border border-emerald-400/40 bg-emerald-400/15 px-4 py-2 text-sm font-bold text-emerald-200 transition-all hover:bg-emerald-400/25"
-        >
-          ✓ Mark All Full (₹{FULL_AMOUNT})
-        </button>
-        <span className="text-xs text-gray-500">
-          Quick start for a normal month — then just fix the few who paid differently below.
-        </span>
       </div>
 
       {selected.size > 0 && (
