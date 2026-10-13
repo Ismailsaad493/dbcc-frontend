@@ -59,7 +59,7 @@ const inputClass =
   'rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60'
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-purple-300'
 
-export default function ExpenseTracker() {
+export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchExpenses }) {
   const [state, setState] = useState({ periods: [], activeId: null })
   const [copyState, setCopyState] = useState('idle') // idle | copied
   const [newMonthLabel, setNewMonthLabel] = useState('')
@@ -146,10 +146,8 @@ export default function ExpenseTracker() {
   }
 
   function startMatchDayForm() {
-    const today = new Date()
-    const dd = String(today.getDate()).padStart(2, '0')
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    setMatchDayForm({ date: `${dd}/${mm}`, items: defaultMatchDayItems() })
+    if (!matchDate || !matchNumber) return
+    setMatchDayForm({ date: matchDate, items: defaultMatchDayItems() })
   }
 
   function saveMatchDayForm() {
@@ -166,6 +164,9 @@ export default function ExpenseTracker() {
         ...items.map((it) => newExpenseItem(it.label.trim(), it.amount, matchDayForm.date.trim())),
       ],
     }))
+    onRecordMatchExpenses?.(
+      items.map((it) => ({ label: it.label.trim(), amount: Number(it.amount) || 0 })),
+    )
     setMatchDayForm(null)
   }
 
@@ -659,14 +660,21 @@ export default function ExpenseTracker() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={startMatchDayForm}
-                className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 transition-all hover:bg-amber-400/25"
+                disabled={!matchDate || !matchNumber}
+                title={!matchDate || !matchNumber ? 'Select a match (top of page) first' : undefined}
+                className="rounded-lg border border-amber-400/40 bg-amber-400/15 px-3 py-1.5 text-xs font-bold text-amber-200 transition-all hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 + Add Match Day
               </button>
+              {(!matchDate || !matchNumber) && (
+                <span className="text-[10px] font-semibold text-gray-500">
+                  Select a match above first
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() =>

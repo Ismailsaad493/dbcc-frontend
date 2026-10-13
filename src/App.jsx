@@ -4,8 +4,19 @@ import Tabs from './components/Tabs'
 import Leaderboard from './components/Leaderboard'
 import PointsManager from './components/PointsManager'
 import ExpenseTracker from './components/ExpenseTracker'
+import MatchSelector from './components/MatchSelector'
+import MatchHistory from './components/MatchHistory'
 import { createInitialPlayers } from './data/players'
 import { apiGet, apiPut } from './utils/api'
+import { addMatchPoints, addMatchExpenses } from './utils/matches'
+
+function readStoredMatchField(key) {
+  try {
+    return localStorage.getItem(key) || null
+  } catch {
+    return null
+  }
+}
 
 function mergeWithInitial(data) {
   const initial = createInitialPlayers()
@@ -18,7 +29,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('leaderboard')
   const [lastActions, setLastActions] = useState(() => new Map()) // "playerId:category" -> { points, label }
   const [touchedKeys, setTouchedKeys] = useState(() => new Set()) // "playerId:category" already updated this session
+  const [matchDate, setMatchDateState] = useState(() => readStoredMatchField('dbcc_matchDate'))
+  const [matchNumber, setMatchNumberState] = useState(() => readStoredMatchField('dbcc_matchNumber'))
+  const [matches, setMatches] = useState([])
   const loadedRef = useRef(false)
+  const matchesLoadedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -43,6 +58,45 @@ export default function App() {
     )
   }, [players])
 
+  useEffect(() => {
+    let cancelled = false
+    apiGet('/api/matches')
+      .then((data) => {
+        if (cancelled) return
+        setMatches(Array.isArray(data) ? data : [])
+      })
+      .catch((err) => console.error('Failed to load matches from the API:', err))
+      .finally(() => {
+        if (!cancelled) matchesLoadedRef.current = true
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!matchesLoadedRef.current) return
+    apiPut('/api/matches', matches).catch((err) =>
+      console.error('Failed to save matches to the API:', err),
+    )
+  }, [matches])
+
+  function setMatch(date, number) {
+    setMatchDateState(date)
+    setMatchNumberState(number)
+    try {
+      if (date && number) {
+        localStorage.setItem('dbcc_matchDate', date)
+        localStorage.setItem('dbcc_matchNumber', number)
+      } else {
+        localStorage.removeItem('dbcc_matchDate')
+        localStorage.removeItem('dbcc_matchNumber')
+      }
+    } catch {
+      // ignore — localStorage is a convenience, not a requirement
+    }
+  }
+
   function addPoints(playerId, category, points, label) {
     setPlayers((prev) =>
       prev.map((p) => (p.id === playerId ? { ...p, [category]: p[category] + points } : p)),
@@ -55,6 +109,12 @@ export default function App() {
       next.set(key, [...history, { points, label }])
       return next
     })
+    if (matchDate && matchNumber) {
+      const player = players.find((p) => p.id === playerId)
+      setMatches((prev) =>
+        addMatchPoints(prev, matchDate, matchNumber, playerId, player?.name || '', category, points),
+      )
+    }
   }
 
   function undoLastAction(playerId, category) {
@@ -72,6 +132,12 @@ export default function App() {
       else next.delete(key)
       return next
     })
+    if (matchDate && matchNumber) {
+      const player = players.find((p) => p.id === playerId)
+      setMatches((prev) =>
+        addMatchPoints(prev, matchDate, matchNumber, playerId, player?.name || '', category, -action.points),
+      )
+    }
   }
 
   function clearPlayerCategory(playerId, category) {
@@ -98,6 +164,11 @@ export default function App() {
     })
   }
 
+  function recordMatchExpenses(items) {
+    if (!matchDate || !matchNumber || !items.length) return
+    setMatches((prev) => addMatchExpenses(prev, matchDate, matchNumber, items))
+  }
+
   function resetMonth() {
     if (!window.confirm('Reset all players to zero points for a new month? This cannot be undone.')) {
       return
@@ -113,18 +184,37 @@ export default function App() {
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 sm:py-8">
         <Tabs active={activeTab} onChange={setActiveTab} />
 
-        {activeTab === 'leaderboard' && <Leaderboard players={players} />}
+        <MatchSelector matchDate={matchDate} matchNumber={matchNumber} onSetMatch={setMatch} />
+
+        {activeTab === 'leaderboard' && (
+          <>
+            <Leaderboard players={players} />
+            <MatchHistory matches={matches} />
+          </>
+        )}
         {activeTab === 'manager' && (
-          <PointsManager
-            players={players}
-            onAddPoints={addPoints}
-            onClearCategory={clearPlayerCategory}
-            onUndo={undoLastAction}
-            lastActions={lastActions}
-            touchedKeys={touchedKeys}
+          matchDate && matchNumber ? (
+            <PointsManager
+              players={players}
+              onAddPoints={addPoints}
+              onClearCategory={clearPlayerCategory}
+              onUndo={undoLastAction}
+              lastActions={lastActions}
+              touchedKeys={touchedKeys}
+            />
+          ) : (
+            <div className="rounded-lg border border-purple-500/10 bg-black/20 py-8 text-center text-sm text-gray-500">
+              Select a match date and number above before entering points.
+            </div>
+          )
+        )}
+        {activeTab === 'expenses' && (
+          <ExpenseTracker
+            matchDate={matchDate}
+            matchNumber={matchNumber}
+            onRecordMatchExpenses={recordMatchExpenses}
           />
         )}
-        {activeTab === 'expenses' && <ExpenseTracker />}
 
         {(activeTab === 'leaderboard' || activeTab === 'manager') && (
           <div className="flex justify-center pt-2">
