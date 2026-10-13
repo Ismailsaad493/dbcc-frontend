@@ -11,6 +11,7 @@ import {
   defaultCollectionLabel,
 } from '../utils/expenses'
 import { apiGet, apiPut } from '../utils/api'
+import { formatDateInput } from '../utils/dateFormat'
 import Collections from './Collections'
 
 const MONTHS = [
@@ -572,11 +573,13 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                 <span className={labelClass}>Match Date</span>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={matchDayForm.date}
                   onChange={(e) =>
-                    setMatchDayForm((f) => ({ ...f, date: e.target.value }))
+                    setMatchDayForm((f) => ({ ...f, date: formatDateInput(e.target.value) }))
                   }
                   placeholder="06/09"
+                  maxLength={8}
                   className={`${inputClass} w-24`}
                 />
               </div>

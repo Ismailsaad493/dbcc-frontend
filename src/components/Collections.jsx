@@ -76,7 +76,15 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
   function applyBulkAmount(amount) {
     if (!selected.size || !Number.isFinite(amount)) return
     const clamped = Math.max(0, amount)
-    setCollections((prev) => prev.map((c) => (selected.has(c.id) ? { ...c, amountPaid: clamped } : c)))
+    setCollections((prev) =>
+      prev.map((c) => {
+        if (!selected.has(c.id)) return c
+        // Marking everyone "Full" in bulk shouldn't overwrite an amount
+        // someone already partially paid — only fill in players still at ₹0.
+        if (clamped === FULL_AMOUNT && c.amountPaid > 0 && c.amountPaid < FULL_AMOUNT) return c
+        return { ...c, amountPaid: clamped }
+      }),
+    )
   }
 
   async function handleCopyPending() {

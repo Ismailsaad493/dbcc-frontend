@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatDateInput } from '../utils/dateFormat'
 
 export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
   const [date, setDate] = useState('')
@@ -37,9 +38,11 @@ export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
           <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Match Date</span>
           <input
             type="text"
+            inputMode="numeric"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => setDate(formatDateInput(e.target.value))}
             placeholder="12/10/26"
+            maxLength={8}
             className="rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
           />
         </label>
