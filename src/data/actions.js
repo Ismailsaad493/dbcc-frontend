@@ -4,8 +4,8 @@ export const ACTION_GROUPS = [
     title: 'Batting Actions',
     accent: 'gold',
     actions: [
-      { id: 'runs50', label: '50 Runs', points: 60 },
-      { id: 'runs100', label: '100 Runs', points: 120 },
+      { id: 'runs50', label: '50 Runs', points: 10 },
+      { id: 'runs100', label: '100 Runs', points: 20 },
       { id: 'duck', label: 'Duck (Out)', points: -15 },
     ],
   },
@@ -14,10 +14,9 @@ export const ACTION_GROUPS = [
     title: 'Bowling Actions',
     accent: 'purple',
     actions: [
-      { id: 'wicket1', label: '1 Wicket', points: 10 },
       { id: 'maiden', label: 'Maiden', points: 5 },
-      { id: 'wickets3', label: '3 Wicket Haul', points: 40 },
-      { id: 'wickets5', label: '5 Wicket Haul', points: 70 },
+      { id: 'wickets3', label: '3 Wicket Haul', points: 10 },
+      { id: 'wickets5', label: '5 Wicket Haul', points: 20 },
       { id: 'extra', label: 'Extra (more than 5 in a match)', points: -3 },
     ],
   },

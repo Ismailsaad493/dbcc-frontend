@@ -73,7 +73,7 @@ export default function Leaderboard({ players }) {
                   <td className="px-4 py-3 font-bold text-gray-300">
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-white">{player.name}</td>
+                  <td className="px-4 py-3 font-semibold uppercase text-white">{player.name}</td>
                   <td className="px-4 py-3 text-right text-gray-300">{player.batting}</td>
                   <td className="px-4 py-3 text-right text-gray-300">{player.bowling}</td>
                   <td className="px-4 py-3 text-right text-gray-300">{player.fielding}</td>

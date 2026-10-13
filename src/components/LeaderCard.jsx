@@ -12,7 +12,7 @@ export default function LeaderCard({ title, player, value, type }) {
       <span className="text-[11px] font-bold uppercase tracking-wider text-purple-300">
         {title}
       </span>
-      <span className="text-lg font-black text-white">
+      <span className="text-lg font-black uppercase text-white">
         {player ? player.name : '—'}
       </span>
       <span className="text-sm font-bold text-amber-200">

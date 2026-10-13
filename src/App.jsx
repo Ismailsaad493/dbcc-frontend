@@ -16,7 +16,8 @@ function mergeWithInitial(data) {
 export default function App() {
   const [players, setPlayers] = useState(createInitialPlayers)
   const [activeTab, setActiveTab] = useState('leaderboard')
-  const [selectedId, setSelectedId] = useState(1)
+  const [lastActions, setLastActions] = useState(() => new Map()) // "playerId:category" -> { points, label }
+  const [touchedKeys, setTouchedKeys] = useState(() => new Set()) // "playerId:category" already updated this session
   const loadedRef = useRef(false)
 
   useEffect(() => {
@@ -42,10 +43,59 @@ export default function App() {
     )
   }, [players])
 
-  function addPoints(playerId, category, points) {
+  function addPoints(playerId, category, points, label) {
     setPlayers((prev) =>
       prev.map((p) => (p.id === playerId ? { ...p, [category]: p[category] + points } : p)),
     )
+    const key = `${playerId}:${category}`
+    setTouchedKeys((prev) => new Set(prev).add(key))
+    setLastActions((prev) => {
+      const next = new Map(prev)
+      const history = next.get(key) || []
+      next.set(key, [...history, { points, label }])
+      return next
+    })
+  }
+
+  function undoLastAction(playerId, category) {
+    const key = `${playerId}:${category}`
+    const history = lastActions.get(key)
+    if (!history || history.length === 0) return
+    const action = history[history.length - 1]
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === playerId ? { ...p, [category]: p[category] - action.points } : p)),
+    )
+    setLastActions((prev) => {
+      const next = new Map(prev)
+      const remaining = history.slice(0, -1)
+      if (remaining.length) next.set(key, remaining)
+      else next.delete(key)
+      return next
+    })
+  }
+
+  function clearPlayerCategory(playerId, category) {
+    const player = players.find((p) => p.id === playerId)
+    if (!player) return
+    if (
+      !window.confirm(`Clear ${player.name}'s ${category} points back to 0?`)
+    ) {
+      return
+    }
+    const key = `${playerId}:${category}`
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === playerId ? { ...p, [category]: 0 } : p)),
+    )
+    setTouchedKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+    setLastActions((prev) => {
+      const next = new Map(prev)
+      next.delete(key)
+      return next
+    })
   }
 
   function resetMonth() {
@@ -53,6 +103,8 @@ export default function App() {
       return
     }
     setPlayers(createInitialPlayers())
+    setTouchedKeys(new Set())
+    setLastActions(new Map())
   }
 
   return (
@@ -65,9 +117,11 @@ export default function App() {
         {activeTab === 'manager' && (
           <PointsManager
             players={players}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
             onAddPoints={addPoints}
+            onClearCategory={clearPlayerCategory}
+            onUndo={undoLastAction}
+            lastActions={lastActions}
+            touchedKeys={touchedKeys}
           />
         )}
         {activeTab === 'expenses' && <ExpenseTracker />}
