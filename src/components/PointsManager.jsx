@@ -107,7 +107,12 @@ function RunsEntry({ player, onAddPoints }) {
   )
 }
 
-function BowlingManualEntry({ player, onAddPoints }) {
+const MANUAL_ENTRY_INPUT_STYLES = {
+  purple: 'border-purple-500/30 focus:border-purple-400/70',
+  pink: 'border-pink-500/30 focus:border-pink-400/70',
+}
+
+function ManualPointsEntry({ player, category, accent, onAddPoints }) {
   const [value, setValue] = useState('')
   const [justSaved, setJustSaved] = useState(false)
 
@@ -115,7 +120,7 @@ function BowlingManualEntry({ player, onAddPoints }) {
     const amount = parseInt(value, 10)
     if (!Number.isFinite(amount) || amount <= 0) return
     const label = sign > 0 ? `${player.name}: Manual +${amount}` : `${player.name}: Manual Minus`
-    onAddPoints(player.id, 'bowling', sign * amount, label)
+    onAddPoints(player.id, category, sign * amount, label)
     setValue('')
     setJustSaved(true)
     setTimeout(() => setJustSaved(false), 1200)
@@ -131,7 +136,7 @@ function BowlingManualEntry({ player, onAddPoints }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && apply(1)}
-        className="min-w-0 flex-1 rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-2.5 py-2 text-xs font-semibold text-white outline-none focus:border-purple-400/70"
+        className={`min-w-0 flex-1 rounded-lg border bg-[#1a0f2e] px-2.5 py-2 text-xs font-semibold text-white outline-none ${MANUAL_ENTRY_INPUT_STYLES[accent]}`}
       />
       <button
         type="button"
@@ -343,7 +348,9 @@ function PlayerCard({
           </div>
         ))}
 
-        {category === 'bowling' && <BowlingManualEntry player={player} onAddPoints={onAddPoints} />}
+        {(category === 'bowling' || category === 'fielding') && (
+          <ManualPointsEntry player={player} category={category} accent={accent} onAddPoints={onAddPoints} />
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-3">

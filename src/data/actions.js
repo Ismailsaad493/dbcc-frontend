@@ -14,6 +14,7 @@ export const ACTION_GROUPS = [
     title: 'Bowling Actions',
     accent: 'purple',
     actions: [
+      { id: 'wicket1', label: '1 Wicket', points: 10 },
       { id: 'maiden', label: 'Maiden', points: 5 },
       { id: 'wickets3', label: '3 Wicket Haul', points: 10 },
       { id: 'wickets5', label: '5 Wicket Haul', points: 20 },
