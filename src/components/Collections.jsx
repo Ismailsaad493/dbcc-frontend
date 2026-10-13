@@ -24,6 +24,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
+  const [addedState, setAddedState] = useState('idle')
   const loadedRef = useRef(false)
 
   useEffect(() => {
@@ -231,10 +232,18 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
       {onSendToPeriod && (
         <button
           type="button"
-          onClick={() => onSendToPeriod(totalCollected)}
-          className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25"
+          onClick={() => {
+            onSendToPeriod(totalCollected)
+            setAddedState('added')
+            setTimeout(() => setAddedState('idle'), 1800)
+          }}
+          className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all ${
+            addedState === 'added'
+              ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300'
+              : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
+          }`}
         >
-          + Add to Collection (₹{totalCollected})
+          {addedState === 'added' ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
         </button>
       )}
     </div>

@@ -60,6 +60,7 @@ const inputClass =
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-purple-300'
 
 export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchExpenses }) {
+  const [view, setView] = useState('tracker') // 'tracker' | 'contributions'
   const [state, setState] = useState({ periods: [], activeId: null })
   const [copyState, setCopyState] = useState('idle') // idle | copied
   const [newMonthLabel, setNewMonthLabel] = useState('')
@@ -189,10 +190,10 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
     }
   }
 
+  let trackerSection
   if (!activePeriod) {
     const { monthLabel, lastMonthLabel, collectionLabel } = describeFirstMonth(firstMonthForm)
-    return (
-      <div className="flex flex-col gap-6">
+    trackerSection = (
       <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
           Team Expense Tracker
@@ -274,15 +275,10 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
           Start Tracking
         </button>
       </div>
-      <Collections />
-      </div>
     )
-  }
-
-  const { incomeSum, expenseSum, totalCollection, inHand } = totals(activePeriod)
-
-  return (
-    <div className="flex flex-col gap-6">
+  } else {
+    const { incomeSum, expenseSum, totalCollection, inHand } = totals(activePeriod)
+    trackerSection = (
     <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
         Team Expense Tracker
@@ -768,7 +764,43 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
         </div>
       )}
     </div>
-    <Collections onSendToPeriod={sendToPeriodCollection} periodLabel={activePeriod.collectionLabel} />
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-purple-500/20 bg-[#150f22] p-1.5">
+        <button
+          type="button"
+          onClick={() => setView('tracker')}
+          className={`rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wide transition-all ${
+            view === 'tracker'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Team Expense Tracker
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('contributions')}
+          className={`rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wide transition-all ${
+            view === 'contributions'
+              ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Monthly Contribution
+        </button>
+      </div>
+
+      {view === 'tracker' && trackerSection}
+      {view === 'contributions' && (
+        <Collections
+          onSendToPeriod={activePeriod ? sendToPeriodCollection : undefined}
+          periodLabel={activePeriod?.collectionLabel}
+        />
+      )}
     </div>
   )
 }
