@@ -11,6 +11,7 @@ import {
   defaultCollectionLabel,
 } from '../utils/expenses'
 import { apiGet, apiPut } from '../utils/api'
+import Collections from './Collections'
 
 const MONTHS = [
   'January',
@@ -185,6 +186,7 @@ export default function ExpenseTracker() {
   if (!activePeriod) {
     const { monthLabel, lastMonthLabel, collectionLabel } = describeFirstMonth(firstMonthForm)
     return (
+      <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
           Team Expense Tracker
@@ -266,12 +268,15 @@ export default function ExpenseTracker() {
           Start Tracking
         </button>
       </div>
+      <Collections />
+      </div>
     )
   }
 
   const { incomeSum, expenseSum, totalCollection, inHand } = totals(activePeriod)
 
   return (
+    <div className="flex flex-col gap-6">
     <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
         Team Expense Tracker
@@ -749,6 +754,8 @@ export default function ExpenseTracker() {
           </div>
         </div>
       )}
+    </div>
+    <Collections />
     </div>
   )
 }

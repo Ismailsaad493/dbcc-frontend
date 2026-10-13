@@ -3,7 +3,6 @@ import Header from './components/Header'
 import Tabs from './components/Tabs'
 import Leaderboard from './components/Leaderboard'
 import PointsManager from './components/PointsManager'
-import Collections from './components/Collections'
 import ExpenseTracker from './components/ExpenseTracker'
 import { createInitialPlayers } from './data/players'
 import { apiGet, apiPut } from './utils/api'
@@ -125,7 +124,6 @@ export default function App() {
             touchedKeys={touchedKeys}
           />
         )}
-        {activeTab === 'collections' && <Collections />}
         {activeTab === 'expenses' && <ExpenseTracker />}
 
         {(activeTab === 'leaderboard' || activeTab === 'manager') && (

@@ -217,20 +217,6 @@ export default function Collections() {
               <div className="flex gap-1">
                 <button
                   type="button"
-                  onClick={() => setAmount(c.id, FULL_AMOUNT)}
-                  className="rounded border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-400/20"
-                >
-                  Full
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAmount(c.id, FULL_AMOUNT / 2)}
-                  className="rounded border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[10px] font-bold text-amber-300 hover:bg-amber-400/20"
-                >
-                  Half
-                </button>
-                <button
-                  type="button"
                   onClick={() => setAmount(c.id, 0)}
                   className="rounded border border-red-400/30 bg-red-400/10 px-2 py-1 text-[10px] font-bold text-red-300 hover:bg-red-400/20"
                 >
