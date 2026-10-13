@@ -1,12 +1,13 @@
 const TABS = [
   { id: 'leaderboard', label: 'Leaderboard' },
   { id: 'manager', label: 'Points Manager' },
+  { id: 'collections', label: 'Collections' },
   { id: 'expenses', label: 'Expenses' },
 ]
 
 export default function Tabs({ active, onChange }) {
   return (
-    <div className="mx-auto flex w-full max-w-sm gap-1 rounded-xl border border-purple-500/20 bg-[#150f22] p-1 sm:max-w-md">
+    <div className="mx-auto flex w-full max-w-md gap-1 rounded-xl border border-purple-500/20 bg-[#150f22] p-1 sm:max-w-lg">
       {TABS.map((tab) => {
         const isActive = tab.id === active
         return (
