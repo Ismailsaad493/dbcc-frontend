@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// Strip any trailing slash so a path like "/api/players" never doubles up
+// into "...com//api/players" regardless of how VITE_API_URL is set.
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/+$/, '')
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE}${path}`)
