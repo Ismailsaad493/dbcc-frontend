@@ -114,18 +114,9 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
       updatePeriod(activePeriod.id, (p) => ({ ...p, collectionAmount: amount }))
       return
     }
-    // No month being tracked yet — start one automatically (same as Start
-    // Tracking would, using today's month/year) so this works standalone.
-    const { monthLabel, lastMonthLabel, collectionLabel } = describeFirstMonth(firstMonthForm)
-    const period = createPeriod({
-      label: monthLabel,
-      openingBalanceLabel: lastMonthLabel,
-      openingBalance: firstMonthForm.openingAmount,
-      editableOpening: true,
-    })
-    period.collectionLabel = collectionLabel
-    period.collectionAmount = amount
-    setState({ periods: [period], activeId: period.id })
+    // No month tracked yet — fill the setup form's collection box so the
+    // admin can then enter the opening balance and press Start Tracking.
+    setFirstMonthForm((f) => ({ ...f, collectionAmount: String(amount) }))
   }
 
   function createFirstPeriod() {
