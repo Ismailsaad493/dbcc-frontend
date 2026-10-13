@@ -85,7 +85,7 @@ function RunsEntry({ player, onAddPoints }) {
       <input
         type="number"
         inputMode="numeric"
-        placeholder="Runs"
+        placeholder="Enter runs"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -132,7 +132,7 @@ function ManualPointsEntry({ player, category, accent, onAddPoints }) {
         type="number"
         inputMode="numeric"
         min="1"
-        placeholder="Manual points"
+        placeholder="Enter points"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && apply(1)}

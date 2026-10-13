@@ -233,7 +233,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
               type="text"
               value={firstMonthForm.year}
               onChange={(e) => setFirstMonthForm((f) => ({ ...f, year: e.target.value }))}
-              placeholder="26"
+              placeholder="Enter year"
               className={inputClass}
             />
           </label>
@@ -324,7 +324,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
               type="text"
               value={newMonthLabel}
               onChange={(e) => setNewMonthLabel(e.target.value)}
-              placeholder="October '26"
+              placeholder="Enter month label"
               className={inputClass}
             />
           </label>
@@ -396,7 +396,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
             <input
               type="text"
               value={activePeriod.collectionLabel}
-              placeholder="September collection"
+              placeholder="Enter collection name"
               onChange={(e) =>
                 updatePeriod(activePeriod.id, (p) => ({
                   ...p,
@@ -408,7 +408,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
             <input
               type="number"
               value={activePeriod.collectionAmount}
-              placeholder="0"
+              placeholder="Enter amount"
               onChange={(e) =>
                 updatePeriod(activePeriod.id, (p) => ({
                   ...p,
@@ -427,7 +427,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
               <input
                 type="text"
                 value={item.label}
-                placeholder="e.g. Sponsorship"
+                placeholder="Enter income name"
                 onChange={(e) =>
                   updatePeriod(activePeriod.id, (p) => ({
                     ...p,
@@ -441,7 +441,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
               <input
                 type="number"
                 value={item.amount}
-                placeholder="0"
+                placeholder="Enter amount"
                 onChange={(e) =>
                   updatePeriod(activePeriod.id, (p) => ({
                     ...p,
@@ -517,7 +517,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                     <input
                       type="text"
                       value={item.label}
-                      placeholder="e.g. Ice, Ground fee"
+                      placeholder="Enter expense name"
                       onChange={(e) =>
                         updatePeriod(activePeriod.id, (p) => ({
                           ...p,
@@ -531,7 +531,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                     <input
                       type="number"
                       value={item.amount}
-                      placeholder="0"
+                      placeholder="Enter amount"
                       onChange={(e) =>
                         updatePeriod(activePeriod.id, (p) => ({
                           ...p,
@@ -583,7 +583,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                   onChange={(e) =>
                     setMatchDayForm((f) => ({ ...f, date: formatDateInput(e.target.value) }))
                   }
-                  placeholder="06/09"
+                  placeholder="Enter date"
                   maxLength={8}
                   className={`${inputClass} w-24`}
                 />
@@ -594,7 +594,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                     <input
                       type="text"
                       value={item.label}
-                      placeholder="e.g. Ice, Ground fee"
+                      placeholder="Enter expense name"
                       onChange={(e) =>
                         setMatchDayForm((f) => ({
                           ...f,
@@ -608,7 +608,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                     <input
                       type="number"
                       value={item.amount}
-                      placeholder="0"
+                      placeholder="Enter amount"
                       onChange={(e) =>
                         setMatchDayForm((f) => ({
                           ...f,

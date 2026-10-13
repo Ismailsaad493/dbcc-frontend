@@ -41,7 +41,7 @@ export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
             inputMode="numeric"
             value={date}
             onChange={(e) => setDate(formatDateInput(e.target.value))}
-            placeholder="12/10/26"
+            placeholder="Enter date"
             maxLength={8}
             className="rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
           />
@@ -52,7 +52,7 @@ export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
             type="text"
             value={number}
             onChange={(e) => setNumber(e.target.value)}
-            placeholder="1"
+            placeholder="Enter match number"
             className="rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
           />
         </label>

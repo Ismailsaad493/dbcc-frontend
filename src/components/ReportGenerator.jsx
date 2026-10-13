@@ -129,7 +129,7 @@ export default function ReportGenerator({
             type="text"
             value={settings.monthLabel}
             onChange={(e) => updateField('monthLabel', e.target.value)}
-            placeholder="October '26"
+            placeholder="Enter month"
             className={inputClass}
           />
         </label>
@@ -139,7 +139,7 @@ export default function ReportGenerator({
             type="text"
             value={settings.tillDate}
             onChange={(e) => updateField('tillDate', e.target.value)}
-            placeholder="04/10/26"
+            placeholder="Enter date"
             className={inputClass}
           />
         </label>
@@ -150,6 +150,7 @@ export default function ReportGenerator({
             min="0"
             value={settings.matchesPlayed}
             onChange={(e) => updateField('matchesPlayed', e.target.value)}
+            placeholder="Enter match number"
             className={inputClass}
           />
         </label>
@@ -173,6 +174,7 @@ export default function ReportGenerator({
               min="0"
               value={settings.wins}
               onChange={(e) => updateField('wins', e.target.value)}
+              placeholder="Enter wins"
               className={inputClass}
             />
           </label>
@@ -183,6 +185,7 @@ export default function ReportGenerator({
               min="0"
               value={settings.losses}
               onChange={(e) => updateField('losses', e.target.value)}
+              placeholder="Enter losses"
               className={inputClass}
             />
           </label>
@@ -194,7 +197,7 @@ export default function ReportGenerator({
         <textarea
           value={settings.customMessage}
           onChange={(e) => updateField('customMessage', e.target.value)}
-          placeholder="Write any note, shoutout, or announcement to show on the report…"
+          placeholder="Enter a note, shoutout, or announcement to show on the report"
           rows={3}
           className={`${inputClass} resize-none`}
         />
