@@ -20,7 +20,7 @@ function mergeWithInitial(data) {
   return initial.map((c, i) => ({ ...c, ...data[i], name: c.name }))
 }
 
-export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = true }) {
+export default function Collections({ onSendToPeriod, periodLabel }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
@@ -167,29 +167,20 @@ export default function Collections({ onSendToPeriod, periodLabel, hasPeriod = t
       </div>
 
       {onSendToPeriod && (
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            disabled={!hasPeriod}
-            title={!hasPeriod ? 'Start tracking a month in Team Expense Tracker first' : undefined}
-            onClick={() => {
-              onSendToPeriod(totalCollected)
-              setLastSent(totalCollected)
-            }}
-            className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-              isSynced
-                ? 'border-gray-600/40 bg-gray-600/10 text-gray-500'
-                : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
-            }`}
-          >
-            {isSynced ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
-          </button>
-          {!hasPeriod && (
-            <span className="text-[10px] font-semibold text-gray-500">
-              Start tracking a month in Team Expense Tracker first
-            </span>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            onSendToPeriod(totalCollected)
+            setLastSent(totalCollected)
+          }}
+          className={`self-start rounded-lg border px-4 py-2 text-sm font-bold transition-all ${
+            isSynced
+              ? 'border-gray-600/40 bg-gray-600/10 text-gray-500'
+              : 'border-amber-400/40 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'
+          }`}
+        >
+          {isSynced ? '✓ Added to Collection' : `+ Add to Collection (₹${totalCollected})`}
+        </button>
       )}
 
       {selected.size > 0 && (

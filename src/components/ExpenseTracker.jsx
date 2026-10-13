@@ -110,8 +110,22 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
   }
 
   function sendToPeriodCollection(amount) {
-    if (!activePeriod) return
-    updatePeriod(activePeriod.id, (p) => ({ ...p, collectionAmount: amount }))
+    if (activePeriod) {
+      updatePeriod(activePeriod.id, (p) => ({ ...p, collectionAmount: amount }))
+      return
+    }
+    // No month being tracked yet — start one automatically (same as Start
+    // Tracking would, using today's month/year) so this works standalone.
+    const { monthLabel, lastMonthLabel, collectionLabel } = describeFirstMonth(firstMonthForm)
+    const period = createPeriod({
+      label: monthLabel,
+      openingBalanceLabel: lastMonthLabel,
+      openingBalance: firstMonthForm.openingAmount,
+      editableOpening: true,
+    })
+    period.collectionLabel = collectionLabel
+    period.collectionAmount = amount
+    setState({ periods: [period], activeId: period.id })
   }
 
   function createFirstPeriod() {
@@ -802,7 +816,6 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
         <Collections
           onSendToPeriod={sendToPeriodCollection}
           periodLabel={activePeriod?.collectionLabel}
-          hasPeriod={Boolean(activePeriod)}
         />
       )}
     </div>
