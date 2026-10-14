@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import ReportCard from './ReportCard'
 import { apiGet, apiPut } from '../utils/api'
+import { mergeReportSettings } from '../utils/reportSettings'
 
 function defaultSettings() {
   const now = new Date()
@@ -42,12 +43,10 @@ export default function ReportGenerator({
     apiGet('/api/report-settings')
       .then((data) => {
         if (cancelled) return
-        setSettings({ ...defaultSettings(), ...data })
+        setSettings(mergeReportSettings(defaultSettings(), data))
+        loadedRef.current = true
       })
       .catch((err) => console.error('Failed to load report settings from the API:', err))
-      .finally(() => {
-        if (!cancelled) loadedRef.current = true
-      })
     return () => {
       cancelled = true
     }

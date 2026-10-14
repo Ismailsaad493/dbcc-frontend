@@ -8,7 +8,12 @@ import MatchSelector from './components/MatchSelector'
 import MatchHistory from './components/MatchHistory'
 import { createInitialPlayers } from './data/players'
 import { apiGet, apiPut } from './utils/api'
-import { addMatchPoints, addMatchExpenses } from './utils/matches'
+import {
+  addMatchPoints,
+  addMatchExpenses,
+  clearMatchPlayerCategory,
+  normalizeMatches,
+} from './utils/matches'
 
 function readStoredMatchField(key) {
   try {
@@ -41,11 +46,10 @@ export default function App() {
       .then((data) => {
         if (cancelled) return
         setPlayers(mergeWithInitial(data))
+        // Saving is only enabled after a successful load, so a failed load can never overwrite server data with defaults.
+        loadedRef.current = true
       })
       .catch((err) => console.error('Failed to load players from the API:', err))
-      .finally(() => {
-        if (!cancelled) loadedRef.current = true
-      })
     return () => {
       cancelled = true
     }
@@ -63,12 +67,10 @@ export default function App() {
     apiGet('/api/matches')
       .then((data) => {
         if (cancelled) return
-        setMatches(Array.isArray(data) ? data : [])
+        setMatches(normalizeMatches(data))
+        matchesLoadedRef.current = true
       })
       .catch((err) => console.error('Failed to load matches from the API:', err))
-      .finally(() => {
-        if (!cancelled) matchesLoadedRef.current = true
-      })
     return () => {
       cancelled = true
     }
@@ -162,6 +164,9 @@ export default function App() {
       next.delete(key)
       return next
     })
+    if (matchDate && matchNumber) {
+      setMatches((prev) => clearMatchPlayerCategory(prev, matchDate, matchNumber, playerId, category))
+    }
   }
 
   function recordMatchExpenses(items) {

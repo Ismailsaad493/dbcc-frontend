@@ -1,4 +1,5 @@
 import { PLAYER_NAMES } from './players'
+import { roundMoney } from '../utils/money'
 
 export const FULL_AMOUNT = 300
 
@@ -17,7 +18,8 @@ export function formatPendingText(collections) {
   if (!pending.length) return 'Awaiting contribution from the below.\n\nEveryone has paid in full. 🎉'
   const lines = ['Awaiting contribution from the below.', '']
   pending.forEach((c, i) => {
-    const suffix = paymentStatus(c.amountPaid) === 'Partially Paid' ? `(₹${FULL_AMOUNT - c.amountPaid})` : ''
+    const suffix =
+      paymentStatus(c.amountPaid) === 'Partially Paid' ? `(₹${roundMoney(FULL_AMOUNT - c.amountPaid)})` : ''
     lines.push(`${i + 1}. ${c.name}${suffix}`)
   })
   return lines.join('\n')

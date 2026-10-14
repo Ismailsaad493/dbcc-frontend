@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { formatDateInput } from '../utils/dateFormat'
+import { formatDateInput, isValidDate } from '../utils/dateFormat'
 
 export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
   const [date, setDate] = useState('')
   const [number, setNumber] = useState('')
   const hasMatch = Boolean(matchDate && matchNumber)
+  const dateValid = isValidDate(date)
 
   function handleStart() {
-    if (!date.trim() || !number.trim()) return
-    onSetMatch(date.trim(), number.trim())
+    if (!dateValid || !number.trim()) return
+    onSetMatch(date, number.trim())
   }
 
   if (hasMatch) {
@@ -45,6 +46,9 @@ export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
             maxLength={8}
             className="rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60"
           />
+          {date && !dateValid && (
+            <span className="text-[10px] font-semibold text-red-300">Enter a valid date as dd/mm/yy</span>
+          )}
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Match Number</span>
@@ -59,7 +63,7 @@ export default function MatchSelector({ matchDate, matchNumber, onSetMatch }) {
       </div>
       <button
         type="button"
-        disabled={!date.trim() || !number.trim()}
+        disabled={!dateValid || !number.trim()}
         onClick={handleStart}
         className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40"
       >

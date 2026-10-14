@@ -1,5 +1,64 @@
+import { roundMoney } from './money'
+
+export const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+/** Derives this month's label, last month's balance label, and this month's collection label from a {monthIndex, year} pick. */
+export function describeFirstMonth({ monthIndex, year }) {
+  const monthLabel = `${MONTHS[monthIndex]} '${year}`
+  const lastMonthIndex = (monthIndex - 1 + 12) % 12
+  // January's "last month" is December of the previous year (00 wraps to 99).
+  const lastMonthYear =
+    monthIndex === 0 && /^\d{1,2}$/.test(year)
+      ? String((Number(year) + 99) % 100).padStart(2, '0')
+      : year
+  const lastMonthLabel = `${MONTHS[lastMonthIndex]}'${lastMonthYear} balance`
+  const collectionLabel = `${MONTHS[monthIndex]} collection`
+  return { monthLabel, lastMonthLabel, collectionLabel }
+}
+
 function uid() {
   return Math.random().toString(36).slice(2, 10)
+}
+
+const isObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v)
+
+/**
+ * Normalizes saved expense state on load: fills in fields older periods lack
+ * (collection label/amount) and repairs malformed periods, so stored data in an
+ * unexpected shape can't crash the whole app.
+ */
+export function migrateState(data) {
+  if (!data || !Array.isArray(data.periods)) return { periods: [], activeId: null }
+  return {
+    ...data,
+    periods: data.periods.filter(isObject).map((p) => {
+      const label = typeof p.label === 'string' ? p.label : ''
+      return {
+        collectionLabel: defaultCollectionLabel(label),
+        collectionAmount: '',
+        openingBalanceLabel: '',
+        editableOpening: false,
+        ...p,
+        label,
+        openingBalance: Number(p.openingBalance) || 0,
+        income: Array.isArray(p.income) ? p.income.filter(isObject) : [],
+        expenses: Array.isArray(p.expenses) ? p.expenses.filter(isObject) : [],
+      }
+    }),
+  }
 }
 
 export function defaultCollectionLabel(label) {
@@ -30,7 +89,7 @@ export function newExpenseItem(label = '', amount = '', date = '') {
 }
 
 function sum(items) {
-  return items.reduce((total, item) => total + (Number(item.amount) || 0), 0)
+  return roundMoney(items.reduce((total, item) => total + (Number(item.amount) || 0), 0))
 }
 
 /** Parses a "DD/MM" style date tag into a sortable number; undated sorts last. */
@@ -58,10 +117,10 @@ export function groupExpensesByDate(expenses) {
 }
 
 export function totals(period) {
-  const incomeSum = sum(period.income) + (Number(period.collectionAmount) || 0)
+  const incomeSum = roundMoney(sum(period.income) + (Number(period.collectionAmount) || 0))
   const expenseSum = sum(period.expenses)
-  const totalCollection = period.openingBalance + incomeSum
-  const inHand = totalCollection - expenseSum
+  const totalCollection = roundMoney(period.openingBalance + incomeSum)
+  const inHand = roundMoney(totalCollection - expenseSum)
   return { incomeSum, expenseSum, totalCollection, inHand }
 }
 

@@ -7,6 +7,7 @@ import {
   formatPendingText,
 } from '../data/collections'
 import { sortAlphabetical } from '../data/playerOrder'
+import { roundMoney } from '../utils/money'
 
 const STATUS_STYLES = {
   Paid: 'border-emerald-400/40 bg-emerald-400/10 text-emerald-300',
@@ -20,7 +21,7 @@ function mergeWithInitial(data) {
   return initial.map((c, i) => ({ ...c, ...data[i], name: c.name }))
 }
 
-export default function Collections({ onSendToPeriod, periodLabel }) {
+export default function Collections({ onSendToPeriod }) {
   const [collections, setCollections] = useState(createInitialCollections)
   const [selected, setSelected] = useState(() => new Set())
   const [copyState, setCopyState] = useState('idle')
@@ -35,11 +36,9 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
       .then((data) => {
         if (cancelled) return
         setCollections(mergeWithInitial(data))
+        loadedRef.current = true
       })
       .catch((err) => console.error('Failed to load collections from the API:', err))
-      .finally(() => {
-        if (!cancelled) loadedRef.current = true
-      })
     return () => {
       cancelled = true
     }
@@ -98,7 +97,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
     }
   }
 
-  const totalCollected = collections.reduce((sum, c) => sum + (c.amountPaid || 0), 0)
+  const totalCollected = roundMoney(collections.reduce((sum, c) => sum + (c.amountPaid || 0), 0))
   const totalExpected = collections.length * FULL_AMOUNT
   const pending = orderedCollections.filter((c) => c.amountPaid < FULL_AMOUNT)
   const isSynced = lastSent !== null && lastSent === totalCollected
@@ -120,7 +119,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
         </div>
         <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-center">
           <div className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Pending</div>
-          <div className="text-xl font-black text-amber-300">₹{totalExpected - totalCollected}</div>
+          <div className="text-xl font-black text-amber-300">₹{roundMoney(totalExpected - totalCollected)}</div>
         </div>
       </div>
 
@@ -154,7 +153,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
                   <li key={c.id}>
                     {c.name}
                     {paymentStatus(c.amountPaid) === 'Partially Paid'
-                      ? `(₹${FULL_AMOUNT - c.amountPaid})`
+                      ? `(₹${roundMoney(FULL_AMOUNT - c.amountPaid)})`
                       : ''}
                   </li>
                 ))}
@@ -223,7 +222,7 @@ export default function Collections({ onSendToPeriod, periodLabel }) {
 
         {orderedCollections.map((c, index) => {
           const status = paymentStatus(c.amountPaid)
-          const remaining = Math.max(0, FULL_AMOUNT - c.amountPaid)
+          const remaining = roundMoney(Math.max(0, FULL_AMOUNT - c.amountPaid))
           return (
             <div
               key={c.id}

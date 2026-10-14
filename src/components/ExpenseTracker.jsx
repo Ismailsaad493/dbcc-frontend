@@ -8,53 +8,13 @@ import {
   formatSummaryText,
   groupExpensesByDate,
   defaultMatchDayItems,
-  defaultCollectionLabel,
+  migrateState,
+  describeFirstMonth,
+  MONTHS,
 } from '../utils/expenses'
 import { apiGet, apiPut } from '../utils/api'
 import { formatDateInput } from '../utils/dateFormat'
 import Collections from './Collections'
-
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
-function migrateState(data) {
-  if (!data || !Array.isArray(data.periods)) return { periods: [], activeId: null }
-  // Migrate periods saved before the dedicated monthly-collection field existed.
-  return {
-    ...data,
-    periods: data.periods.map((p) => ({
-      collectionLabel: defaultCollectionLabel(p.label || ''),
-      collectionAmount: '',
-      ...p,
-    })),
-  }
-}
-
-/** Derives this month's label, last month's balance label, and this month's collection label from a {monthIndex, year} pick. */
-function describeFirstMonth({ monthIndex, year }) {
-  const yearNum = Number(year)
-  const monthLabel = `${MONTHS[monthIndex]} '${year}`
-  const lastMonthIndex = (monthIndex - 1 + 12) % 12
-  const lastMonthYear =
-    monthIndex === 0 && !Number.isNaN(yearNum)
-      ? String(yearNum - 1).padStart(2, '0').slice(-2)
-      : year
-  const lastMonthLabel = `${MONTHS[lastMonthIndex]}'${lastMonthYear} balance`
-  const collectionLabel = `${MONTHS[monthIndex]} collection`
-  return { monthLabel, lastMonthLabel, collectionLabel }
-}
 
 const inputClass =
   'rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-400/60'
@@ -82,11 +42,9 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
       .then((data) => {
         if (cancelled) return
         setState(migrateState(data))
+        loadedRef.current = true
       })
       .catch((err) => console.error('Failed to load expenses from the API:', err))
-      .finally(() => {
-        if (!cancelled) loadedRef.current = true
-      })
     return () => {
       cancelled = true
     }
@@ -231,8 +189,12 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
             <span className={labelClass}>Year</span>
             <input
               type="text"
+              inputMode="numeric"
+              maxLength={2}
               value={firstMonthForm.year}
-              onChange={(e) => setFirstMonthForm((f) => ({ ...f, year: e.target.value }))}
+              onChange={(e) =>
+                setFirstMonthForm((f) => ({ ...f, year: e.target.value.replace(/\D/g, '').slice(0, 2) }))
+              }
               placeholder="Enter year"
               className={inputClass}
             />
@@ -276,14 +238,15 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
         <button
           type="button"
           onClick={createFirstPeriod}
-          className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25"
+          disabled={!/^\d{2}$/.test(firstMonthForm.year)}
+          className="self-start rounded-lg border border-amber-400/40 bg-amber-400/15 px-4 py-2 text-sm font-bold text-amber-200 transition-all hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Start Tracking
         </button>
       </div>
     )
   } else {
-    const { incomeSum, expenseSum, totalCollection, inHand } = totals(activePeriod)
+    const { expenseSum, totalCollection, inHand } = totals(activePeriod)
     trackerSection = (
     <div className="flex flex-col gap-4 rounded-xl border border-purple-500/20 bg-[#150f22] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
       <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-300">
@@ -366,7 +329,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                       openingBalanceLabel: e.target.value,
                     }))
                   }
-                  className={`${inputClass} flex-1`}
+                  className={`${inputClass} min-w-0 flex-1`}
                 />
                 <input
                   type="number"
@@ -403,7 +366,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                   collectionLabel: e.target.value,
                 }))
               }
-              className={`${inputClass} flex-1`}
+              className={`${inputClass} min-w-0 flex-1`}
             />
             <input
               type="number"
@@ -436,7 +399,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                     ),
                   }))
                 }
-                className={`${inputClass} flex-1`}
+                className={`${inputClass} min-w-0 flex-1`}
               />
               <input
                 type="number"
@@ -526,7 +489,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                           ),
                         }))
                       }
-                      className={`${inputClass} flex-1`}
+                      className={`${inputClass} min-w-0 flex-1`}
                     />
                     <input
                       type="number"
@@ -603,7 +566,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                           ),
                         }))
                       }
-                      className={`${inputClass} flex-1`}
+                      className={`${inputClass} min-w-0 flex-1`}
                     />
                     <input
                       type="number"
@@ -804,10 +767,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
 
       {view === 'tracker' && trackerSection}
       {view === 'contributions' && (
-        <Collections
-          onSendToPeriod={sendToPeriodCollection}
-          periodLabel={activePeriod?.collectionLabel}
-        />
+        <Collections onSendToPeriod={sendToPeriodCollection} />
       )}
     </div>
   )
