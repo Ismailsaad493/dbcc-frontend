@@ -1,7 +1,6 @@
 // Frontend <-> backend integration tests. The real frontend modules (api.js and
-// the data builders) talk to the real Express server, which is started on a free
-// port with a throwaway data folder. No database, no production API, and the
-// repo's be/data folder is never touched.
+// the data builders) talk to the ASP.NET Core API with an isolated SQLite file.
+// The configured SQL Server and be/data folder are never touched.
 
 import { test, describe, before, after } from 'node:test'
 import assert from 'node:assert/strict'
@@ -61,12 +60,12 @@ describe('endpoint contract: what the frontend calls vs what the backend serves'
         frontendCalls.add(`${m[1].toUpperCase()} ${m[2]}`)
       }
     }
-    const serverText = await readFile(path.join(beRoot, 'server.js'), 'utf-8')
-    backendRoutes = new Set(
-      [...serverText.matchAll(/app\.(get|put|post|patch|delete)\(\s*'(\/api\/[^']+)'/g)].map(
-        (m) => `${m[1].toUpperCase()} ${m[2]}`,
-      ),
-    )
+    const swagger = await fetch(`${server.base}/swagger/v1/swagger.json`).then((response) => response.json())
+    backendRoutes = new Set()
+    for (const [route, methods] of Object.entries(swagger.paths)) {
+      if (!route.startsWith('/api/')) continue
+      for (const method of Object.keys(methods)) backendRoutes.add(`${method.toUpperCase()} ${route}`)
+    }
   })
 
   test('the frontend makes the 10 expected calls (GET + PUT for 5 resources)', () => {
@@ -80,8 +79,10 @@ describe('endpoint contract: what the frontend calls vs what the backend serves'
     for (const call of frontendCalls) assert.ok(backendRoutes.has(call), `backend is missing: ${call}`)
   })
 
-  test('no backend /api route is unused by the frontend (no dead endpoints)', () => {
-    for (const route of backendRoutes) assert.ok(frontendCalls.has(route), `unused backend route: ${route}`)
+  test('Swagger documents the additional CRUD routes without changing the frontend contract', () => {
+    for (const route of ['POST /api/players', 'DELETE /api/players/{id}', 'POST /api/expenses/periods', 'DELETE /api/expenses/periods/{id}']) {
+      assert.ok(backendRoutes.has(route), `Swagger is missing: ${route}`)
+    }
   })
 
   test('every route the frontend uses actually answers over HTTP', async () => {
@@ -277,7 +278,9 @@ describe('CORS and configuration', () => {
     const example = await readFile(path.join(feRoot, '.env.example'), 'utf-8')
     assert.match(example, /^VITE_API_URL=http:\/\/localhost:4000\s*$/m)
     assert.match(await readFile(path.join(feRoot, 'src', 'utils', 'api.js'), 'utf-8'), /'http:\/\/localhost:4000'/)
-    assert.match(await readFile(path.join(beRoot, 'server.js'), 'utf-8'), /process\.env\.PORT \|\| 4000/)
+    const launchSettings = JSON.parse((await readFile(path.join(beRoot, 'Dbcc.Api', 'Properties', 'launchSettings.json'), 'utf-8')).replace(/^\uFEFF/, ''))
+    assert.equal(launchSettings.profiles.http.applicationUrl, 'http://localhost:4000')
+    assert.match(await readFile(path.join(beRoot, 'Dbcc.Api', 'Program.cs'), 'utf-8'), /http:\/\/0\.0\.0\.0:4000/)
   })
 
   test('real env files and live data files are git-ignored; .env.example stays tracked', () => {
@@ -288,7 +291,8 @@ describe('CORS and configuration', () => {
     assert.equal(ignored(feRoot, 'dist/index.html'), true)
     assert.equal(ignored(beRoot, '.env'), true)
     assert.equal(ignored(beRoot, 'data/players.json'), true, 'real club data must never be committed')
-    assert.equal(ignored(beRoot, 'server.js'), false)
+    assert.equal(ignored(beRoot, 'Dbcc.Api/Dbcc.Api.csproj'), false)
+    assert.equal(ignored(beRoot, 'Dbcc.Api/obj/project.assets.json'), true)
   })
 
   test('index.html has a valid favicon that exists in public/ and leaks no local file path', async () => {
