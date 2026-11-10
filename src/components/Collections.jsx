@@ -66,9 +66,13 @@ export default function Collections({ onSendToPeriod }) {
   function setAmount(id, amount) {
     const clamped = Number.isFinite(amount) ? Math.max(0, amount) : 0
     setCollections((prev) =>
-      prev.map((c) =>
-        c.id === id && c.amountPaid < FULL_AMOUNT ? { ...c, amountPaid: clamped } : c,
-      ),
+      prev.map((c) => {
+        if (c.id !== id || c.amountPaid >= FULL_AMOUNT) return c
+        const next = { ...c, amountPaid: clamped }
+        if (clamped >= FULL_AMOUNT) next._undoAmountPaid = Math.max(0, c.amountPaid)
+        else delete next._undoAmountPaid
+        return next
+      }),
     )
     if (clamped >= FULL_AMOUNT) {
       setSelected((prev) => {
@@ -114,7 +118,10 @@ export default function Collections({ onSendToPeriod }) {
         // Marking everyone "Full" in bulk shouldn't overwrite an amount
         // someone already partially paid — only fill in players still at ₹0.
         if (clamped === FULL_AMOUNT && c.amountPaid > 0 && c.amountPaid < FULL_AMOUNT) return c
-        return { ...c, amountPaid: clamped }
+        const next = { ...c, amountPaid: clamped }
+        if (clamped >= FULL_AMOUNT) next._undoAmountPaid = Math.max(0, c.amountPaid)
+        else delete next._undoAmountPaid
+        return next
       }),
     )
     if (idsToUnselect.length) {
@@ -124,6 +131,27 @@ export default function Collections({ onSendToPeriod }) {
         return next
       })
     }
+  }
+
+  function undoFullPayment(id) {
+    setCollections((prev) =>
+      prev.map((c) => {
+        if (c.id !== id || c.amountPaid < FULL_AMOUNT) return c
+        const previousAmount = Number(c._undoAmountPaid)
+        const restoredAmount = Number.isFinite(previousAmount) && previousAmount >= 0 && previousAmount < FULL_AMOUNT
+          ? previousAmount
+          : 0
+        const next = { ...c, amountPaid: restoredAmount }
+        delete next._undoAmountPaid
+        return next
+      }),
+    )
+    setSelected((prev) => {
+      if (!prev.has(id)) return prev
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
   }
 
   async function handleCopyPending() {
@@ -322,6 +350,15 @@ export default function Collections({ onSendToPeriod }) {
               <span className="text-xs font-semibold text-gray-500">
                 {remaining > 0 ? `₹${remaining} remaining` : 'Settled'}
               </span>
+              {fullyPaid && (
+                <button
+                  type="button"
+                  onClick={() => undoFullPayment(c.id)}
+                  className="rounded border border-purple-400/30 bg-purple-400/10 px-2 py-1 text-[10px] font-bold text-purple-200 hover:bg-purple-400/20"
+                >
+                  Undo
+                </button>
+              )}
             </div>
           )
         })}
