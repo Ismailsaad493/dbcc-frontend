@@ -1,6 +1,6 @@
 // Frontend <-> backend integration tests. The real frontend modules (api.js and
-// the data builders) talk to the ASP.NET Core API with an isolated SQLite file.
-// The configured SQL Server and be/data folder are never touched.
+// the data builders) talk to the ASP.NET Core API with a unique MongoDB test DB.
+// The application's DBCC database and be/data folder are never touched.
 
 import { test, describe, before, after } from 'node:test'
 import assert from 'node:assert/strict'

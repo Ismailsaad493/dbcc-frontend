@@ -13,7 +13,6 @@ import {
   MONTHS,
 } from '../utils/expenses'
 import { apiGet, apiPut } from '../utils/api'
-import { formatDateInput } from '../utils/dateFormat'
 import Collections from './Collections'
 
 const inputClass =
@@ -112,7 +111,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
 
   function startMatchDayForm() {
     if (!matchDate || !matchNumber) return
-    setMatchDayForm({ date: matchDate, items: defaultMatchDayItems() })
+    setMatchDayForm({ items: defaultMatchDayItems() })
   }
 
   function saveMatchDayForm() {
@@ -126,7 +125,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
       ...p,
       expenses: [
         ...p.expenses,
-        ...items.map((it) => newExpenseItem(it.label.trim(), it.amount, matchDayForm.date.trim())),
+        ...items.map((it) => newExpenseItem(it.label.trim(), it.amount, matchDate.trim())),
       ],
     }))
     onRecordMatchExpenses?.(
@@ -538,18 +537,8 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
           {matchDayForm ? (
             <div className="rounded-lg border border-amber-400/30 bg-black/30 p-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className={labelClass}>Match Date</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={matchDayForm.date}
-                  onChange={(e) =>
-                    setMatchDayForm((f) => ({ ...f, date: formatDateInput(e.target.value) }))
-                  }
-                  placeholder="Enter date"
-                  maxLength={8}
-                  className={`${inputClass} w-24`}
-                />
+                <span className={labelClass}>Selected Date</span>
+                <span className="text-sm font-bold text-amber-200">{matchDate}</span>
               </div>
               <div className="flex flex-col gap-2">
                 {matchDayForm.items.map((item, i) => (
@@ -647,7 +636,7 @@ export default function ExpenseTracker({ matchDate, matchNumber, onRecordMatchEx
                 onClick={() =>
                   updatePeriod(activePeriod.id, (p) => ({
                     ...p,
-                    expenses: [...p.expenses, newExpenseItem()],
+                    expenses: [...p.expenses, newExpenseItem('', '', matchDate || '')],
                   }))
                 }
                 className="rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-1.5 text-xs font-bold text-red-200 hover:bg-red-400/20"

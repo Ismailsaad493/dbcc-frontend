@@ -51,14 +51,37 @@ export default function Collections({ onSendToPeriod }) {
     )
   }, [collections])
 
-  const orderedCollections = useMemo(() => sortAlphabetical(collections), [collections])
+  const orderedCollections = useMemo(() => {
+    const alphabetical = sortAlphabetical(collections)
+    return [
+      ...alphabetical.filter((c) => c.amountPaid < FULL_AMOUNT),
+      ...alphabetical.filter((c) => c.amountPaid >= FULL_AMOUNT),
+    ]
+  }, [collections])
+  const editableCollections = useMemo(
+    () => orderedCollections.filter((c) => c.amountPaid < FULL_AMOUNT),
+    [orderedCollections],
+  )
 
   function setAmount(id, amount) {
     const clamped = Number.isFinite(amount) ? Math.max(0, amount) : 0
-    setCollections((prev) => prev.map((c) => (c.id === id ? { ...c, amountPaid: clamped } : c)))
+    setCollections((prev) =>
+      prev.map((c) =>
+        c.id === id && c.amountPaid < FULL_AMOUNT ? { ...c, amountPaid: clamped } : c,
+      ),
+    )
+    if (clamped >= FULL_AMOUNT) {
+      setSelected((prev) => {
+        if (!prev.has(id)) return prev
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
   }
 
   function toggleSelected(id) {
+    if (!collections.some((c) => c.id === id && c.amountPaid < FULL_AMOUNT)) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -68,23 +91,39 @@ export default function Collections({ onSendToPeriod }) {
   }
 
   function toggleSelectAll() {
-    setSelected((prev) =>
-      prev.size === collections.length ? new Set() : new Set(collections.map((c) => c.id)),
-    )
+    setSelected((prev) => {
+      const allSelected = editableCollections.length > 0 &&
+        editableCollections.every((c) => prev.has(c.id))
+      return allSelected ? new Set() : new Set(editableCollections.map((c) => c.id))
+    })
   }
 
   function applyBulkAmount(amount) {
     if (!selected.size || !Number.isFinite(amount)) return
     const clamped = Math.max(0, amount)
+    const editableSelected = collections.filter((c) => selected.has(c.id) && c.amountPaid < FULL_AMOUNT)
+    const editableSelectedIds = new Set(editableSelected.map((c) => c.id))
+    const idsToUnselect = clamped >= FULL_AMOUNT
+      ? editableSelected
+        .filter((c) => !(clamped === FULL_AMOUNT && c.amountPaid > 0))
+        .map((c) => c.id)
+      : []
     setCollections((prev) =>
       prev.map((c) => {
-        if (!selected.has(c.id)) return c
+        if (!editableSelectedIds.has(c.id) || c.amountPaid >= FULL_AMOUNT) return c
         // Marking everyone "Full" in bulk shouldn't overwrite an amount
         // someone already partially paid — only fill in players still at ₹0.
         if (clamped === FULL_AMOUNT && c.amountPaid > 0 && c.amountPaid < FULL_AMOUNT) return c
         return { ...c, amountPaid: clamped }
       }),
     )
+    if (idsToUnselect.length) {
+      setSelected((prev) => {
+        const next = new Set(prev)
+        idsToUnselect.forEach((id) => next.delete(id))
+        return next
+      })
+    }
   }
 
   async function handleCopyPending() {
@@ -213,8 +252,9 @@ export default function Collections({ onSendToPeriod }) {
         <div className="flex items-center gap-2 px-1">
           <input
             type="checkbox"
-            checked={selected.size === collections.length}
+            checked={editableCollections.length > 0 && editableCollections.every((c) => selected.has(c.id))}
             onChange={toggleSelectAll}
+            disabled={editableCollections.length === 0}
             className="h-4 w-4 accent-purple-500"
           />
           <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Select All</span>
@@ -223,18 +263,25 @@ export default function Collections({ onSendToPeriod }) {
         {orderedCollections.map((c, index) => {
           const status = paymentStatus(c.amountPaid)
           const remaining = roundMoney(Math.max(0, FULL_AMOUNT - c.amountPaid))
+          const fullyPaid = c.amountPaid >= FULL_AMOUNT
           return (
             <div
               key={c.id}
               className="flex flex-wrap items-center gap-3 rounded-lg border border-purple-500/10 bg-black/20 p-3"
             >
-              <input
-                type="checkbox"
-                checked={selected.has(c.id)}
-                onChange={() => toggleSelected(c.id)}
-                className="h-4 w-4 accent-purple-500"
-              />
-              <span className="min-w-[90px] flex-1 font-bold uppercase text-white">{c.name}</span>
+              {fullyPaid ? (
+                <span aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <input
+                  type="checkbox"
+                  checked={selected.has(c.id)}
+                  onChange={() => toggleSelected(c.id)}
+                  className="h-4 w-4 accent-purple-500"
+                />
+              )}
+              <span className={`min-w-[90px] flex-1 font-bold uppercase ${fullyPaid ? 'text-gray-500' : 'text-white'}`}>
+                {c.name}
+              </span>
 
               <div className="flex items-center gap-1">
                 <span className="text-xs text-gray-500">₹</span>
@@ -243,27 +290,30 @@ export default function Collections({ onSendToPeriod }) {
                   value={c.amountPaid}
                   onChange={(e) => setAmount(c.id, Number(e.target.value))}
                   ref={(el) => (amountInputRefs.current[index] = el)}
+                  disabled={fullyPaid}
                   onKeyDown={(e) => {
                     if (e.key !== 'Enter') return
                     e.preventDefault()
-                    const next = amountInputRefs.current[index + 1]
+                    const next = amountInputRefs.current.slice(index + 1).find((input) => input && !input.disabled)
                     next?.focus()
                     next?.select()
                   }}
-                  className="w-20 rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-2 py-1.5 text-sm font-bold text-white outline-none focus:border-amber-400/60"
+                  className={`w-20 rounded-lg border border-purple-500/30 bg-[#1a0f2e] px-2 py-1.5 text-sm font-bold text-white outline-none focus:border-amber-400/60 disabled:cursor-not-allowed disabled:opacity-50 ${fullyPaid ? 'text-gray-500' : ''}`}
                 />
                 <span className="text-xs text-gray-500">/ ₹{FULL_AMOUNT}</span>
               </div>
 
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setAmount(c.id, 0)}
-                  className="rounded border border-red-400/30 bg-red-400/10 px-2 py-1 text-[10px] font-bold text-red-300 hover:bg-red-400/20"
-                >
-                  ₹0
-                </button>
-              </div>
+              {!fullyPaid && (
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAmount(c.id, 0)}
+                    className="rounded border border-red-400/30 bg-red-400/10 px-2 py-1 text-[10px] font-bold text-red-300 hover:bg-red-400/20"
+                  >
+                    ₹0
+                  </button>
+                </div>
+              )}
 
               <span className={`rounded-full border px-2 py-1 text-[10px] font-bold uppercase ${STATUS_STYLES[status]}`}>
                 {status}
